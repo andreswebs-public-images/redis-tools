@@ -42,7 +42,7 @@ items:
     kind: ConfigMap
     metadata:
       name: redis-cli-conf-tpl
-      namespace: utils
+      namespace: redis-tools
     data:
       redis-cli.conf.tpl: |
         fips = no
@@ -58,7 +58,7 @@ items:
     kind: ConfigMap
     metadata:
       name: scripts
-      namespace: utils
+      namespace: redis-tools
     data:
       conf.sh: |
         #!/bin/sh -e
@@ -71,21 +71,21 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: redis-tools
-  namespace: utils
+  namespace: redis-tools
   labels:
     app: redis-tools
 spec:
   serviceAccountName: redis-tools
   securityContext:
     runAsNonRoot: true
-    supplementalGroups: [ 10001] 
-    fsGroup: 10001  
+    supplementalGroups: [ 10001]
+    fsGroup: 10001
   initContainers:
     - name: awscli
       image: andreswebs/awscli
       imagePullPolicy: Always
       securityContext:
-        runAsUser: 1000      
+        runAsUser: 1000
       command:
         - /scripts/conf.sh
       env:
@@ -107,13 +107,17 @@ spec:
       image: andreswebs/redis-tools
       imagePullPolicy: Always
       securityContext:
-        runAsUser: 1000      
+        runAsUser: 1000
       stdin: true
       tty: true
       args: ["bash", "-l"]
       env:
         - name: USE_TLS
           value: "yes"
+        - name: HOST_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
       volumeMounts:
         - name: conf
           mountPath: /etc/stunnel/conf.d/redis-cli.conf

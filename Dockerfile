@@ -29,6 +29,14 @@ COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
+RUN \
+  echo trap exit TERM > /etc/profile.d/trapterm.sh && \
+  echo 'export PS1="\e[1m\e[31m[\$HOST_IP] \e[34m\u@\h\e[35m \w\e[0m\n$ "' >> /app/.bashrc
+
+ENV  \
+  HOST_IP="0.0.0.0" \
+  PS1="\e[1m\e[31m[\$HOST_IP] \e[34m\u@\h\e[35m \w\e[0m\n$ "
+
 WORKDIR /app
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
