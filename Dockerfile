@@ -8,12 +8,15 @@ RUN \
   apt-get clean && \
   rm -rvf /var/lib/apt/lists/*
 
+ARG PUID=1000
+ARG PGID=1000
+
 RUN \
   addgroup \
-    --gid 65333 app && \
+    --gid "${PGID}" app && \
   adduser \
-    --gid 65333 \
-    --uid 65333 \
+    --gid "${PGID}" \
+    --uid "${PUID}" \
     --shell /bin/bash \
     --home /app \
     app

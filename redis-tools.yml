@@ -75,11 +75,17 @@ metadata:
   labels:
     app: redis-tools
 spec:
-  serviceAccountName: configure-databases
+  serviceAccountName: redis-tools
+  securityContext:
+    runAsNonRoot: true
+    supplementalGroups: [ 10001] 
+    fsGroup: 10001  
   initContainers:
     - name: awscli
       image: andreswebs/awscli
       imagePullPolicy: Always
+      securityContext:
+        runAsUser: 1000      
       command:
         - /scripts/conf.sh
       env:
@@ -100,6 +106,8 @@ spec:
     - name: redis-tools
       image: andreswebs/redis-tools
       imagePullPolicy: Always
+      securityContext:
+        runAsUser: 1000      
       stdin: true
       tty: true
       args: ["bash", "-l"]
