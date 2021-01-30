@@ -4,11 +4,10 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 RUN \
   apt-get update && \
-  apt-get dist-upgrade -y && \
   apt-get install -y \
   redis-tools stunnel gosu && \
   apt-get clean && \
-  rm -rvf /var/lib/apt/lists/*
+  rm -rf /var/lib/apt/lists/*
 
 ARG PUID=1000
 ARG PGID=1000
@@ -19,6 +18,8 @@ RUN \
   adduser \
     --gid "${PGID}" \
     --uid "${PUID}" \
+    --gecos "" \
+    --disabled-password \
     --shell /bin/bash \
     --home /app \
     app
