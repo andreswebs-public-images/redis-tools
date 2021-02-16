@@ -74,6 +74,8 @@ metadata:
   namespace: redis-tools
   labels:
     app: redis-tools
+  annotations:
+    cluster-autoscaler.kubernetes.io/safe-to-evict: "true"    
 spec:
   serviceAccountName: redis-tools
   securityContext:
