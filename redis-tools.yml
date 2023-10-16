@@ -6,12 +6,28 @@ metadata:
 
 ---
 apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: redis-cli-conf
+    namespace: redis-tools
+  data:
+    redis-cli.conf: |
+      fips = no
+      debug = 7
+      delay = yes
+      options = NO_SSLv2
+      options = NO_SSLv3
+      [redis-cli]
+          client = yes
+          accept = 127.0.0.1:6379
+          connect = ${REDIS_ENDPOINT}:${REDIS_PORT}
+
+---
+apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: redis-tools
   namespace: redis-tools
-  annotations:
-    eks.amazonaws.com/role-arn: arn:aws:iam::<account>:role/<role name>
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -36,38 +52,6 @@ subjects:
 
 ---
 apiVersion: v1
-kind: List
-items:
-  - apiVersion: v1
-    kind: ConfigMap
-    metadata:
-      name: redis-cli-conf-tpl
-      namespace: redis-tools
-    data:
-      redis-cli.conf.tpl: |
-        fips = no
-        debug = 7
-        delay = yes
-        options = NO_SSLv2
-        options = NO_SSLv3
-        [redis-cli]
-            client = yes
-            accept = 127.0.0.1:6379
-            connect = ${REDIS_ENDPOINT}:${REDIS_PORT}
-  - apiVersion: v1
-    kind: ConfigMap
-    metadata:
-      name: scripts
-      namespace: redis-tools
-    data:
-      conf.sh: |
-        #!/bin/sh -e
-        ENDPOINT=$(aws ssm get-parameter --name "${AWS_SSM_REDIS_ENDPOINT}" --query "Parameter.Value" --output text)
-        PORT=$(aws ssm get-parameter --name "${AWS_SSM_REDIS_PORT}" --query "Parameter.Value" --output text)
-        REDIS_ENDPOINT="${ENDPOINT}" REDIS_PORT="${PORT}" envsubst < /tpl/redis-cli.conf.tpl > /conf/redis-cli.conf
-
----
-apiVersion: v1
 kind: Pod
 metadata:
   name: redis-tools
@@ -82,28 +66,6 @@ spec:
     runAsNonRoot: true
     supplementalGroups: [ 10001]
     fsGroup: 10001
-  initContainers:
-    - name: awscli
-      image: andreswebs/awscli
-      imagePullPolicy: Always
-      securityContext:
-        runAsUser: 1000
-      command:
-        - /scripts/conf.sh
-      env:
-        - name: AWS_SSM_REDIS_ENDPOINT
-          value: /elasticache/endpoint
-        - name: AWS_SSM_REDIS_PORT
-          value: /elasticache/port
-      volumeMounts:
-        - name: redis-cli-conf-tpl
-          mountPath: /tpl/redis-cli.conf.tpl
-          subPath: redis-cli.conf.tpl
-        - name: conf
-          mountPath: /conf
-        - name: scripts
-          mountPath: /scripts/conf.sh
-          subPath: conf.sh
   containers:
     - name: redis-tools
       image: andreswebs/redis-tools

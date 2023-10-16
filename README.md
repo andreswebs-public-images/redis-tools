@@ -6,26 +6,21 @@ A redis-tools docker image for k8s deployment.
 
 ### Prerequisites
 
-You need a working EKS cluster and `kubectl` configured.
+You need a working Kubernetes cluster and `kubectl` configured.
 
-You need an IAM role for the k8s service account, with permissions to access the SSM parameters used in `redis-tools.yml`.
-
-The k8s manifest assumes there are two SSM parameters in the environment, storing the Redis endpoint and port:
-
-- `/elasticache/endpoint`
-- `/elasticache/port`
-
-Edit the `redis-tools.yml` with the correct information for IAM and SSM.
+Edit the `redis-cli-conf` configmap in `redis-tools.yml` with the information
+for the `${REDIS_ENDPOINT}` and `${REDIS_PORT}` to use. Replace those strings
+with the correct values for your environment.
 
 ### Deploy the objects:
 
-``` bash
+```sh
 kubectl apply -f redis-tools.yml
 ```
 
 ### Attach to the pod:
 
-``` bash
+```sh
 kubectl attach --namespace redis-tools -ti redis-tools
 ```
 
