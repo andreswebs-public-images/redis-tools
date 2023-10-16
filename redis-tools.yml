@@ -6,21 +6,21 @@ metadata:
 
 ---
 apiVersion: v1
-  kind: ConfigMap
-  metadata:
-    name: redis-cli-conf
-    namespace: redis-tools
-  data:
-    redis-cli.conf: |
-      fips = no
-      debug = 7
-      delay = yes
-      options = NO_SSLv2
-      options = NO_SSLv3
-      [redis-cli]
-          client = yes
-          accept = 127.0.0.1:6379
-          connect = ${REDIS_ENDPOINT}:${REDIS_PORT}
+kind: ConfigMap
+metadata:
+  name: redis-cli-conf
+  namespace: redis-tools
+data:
+  redis-cli.conf: |
+    fips = no
+    debug = 7
+    delay = yes
+    options = NO_SSLv2
+    options = NO_SSLv3
+    [redis-cli]
+        client = yes
+        accept = 127.0.0.1:6379
+        connect = ${REDIS_ENDPOINT}:${REDIS_PORT}
 
 ---
 apiVersion: v1
@@ -59,19 +59,16 @@ metadata:
   labels:
     app: redis-tools
   annotations:
-    cluster-autoscaler.kubernetes.io/safe-to-evict: "true"    
+    cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
 spec:
   serviceAccountName: redis-tools
   securityContext:
-    runAsNonRoot: true
     supplementalGroups: [ 10001]
     fsGroup: 10001
   containers:
     - name: redis-tools
       image: andreswebs/redis-tools
       imagePullPolicy: Always
-      securityContext:
-        runAsUser: 1000
       stdin: true
       tty: true
       args: ["bash", "-l"]
@@ -83,17 +80,11 @@ spec:
             fieldRef:
               fieldPath: status.hostIP
       volumeMounts:
-        - name: conf
+        - name: redis-cli-conf
           mountPath: /etc/stunnel/conf.d/redis-cli.conf
           subPath: redis-cli.conf
   volumes:
-    - name: conf
-      emptyDir: {}
-    - name: redis-cli-conf-tpl
+    - name: redis-cli-conf
       configMap:
-        name: redis-cli-conf-tpl
-        defaultMode: 0755
-    - name: scripts
-      configMap:
-        name: scripts
+        name: redis-cli-conf
         defaultMode: 0755
