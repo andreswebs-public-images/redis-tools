@@ -4,13 +4,13 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 RUN \
   apt-get update && \
-  apt-get install -y \
-  redis-tools stunnel gosu && \
+  apt-get install --yes --quiet \
+      redis-tools stunnel gosu && \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
 
-ARG PUID=1000
-ARG PGID=1000
+ARG PUID=2000
+ARG PGID=2000
 
 RUN \
   addgroup \

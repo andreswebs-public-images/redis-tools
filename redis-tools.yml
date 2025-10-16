@@ -35,6 +35,7 @@ kind: Role
 metadata:
   name: redis-tools
   namespace: redis-tools
+rules: []
 
 ---
 kind: RoleBinding
@@ -63,7 +64,7 @@ metadata:
 spec:
   serviceAccountName: redis-tools
   securityContext:
-    supplementalGroups: [ 10001]
+    supplementalGroups: [10001]
     fsGroup: 10001
   containers:
     - name: redis-tools
@@ -71,7 +72,7 @@ spec:
       imagePullPolicy: Always
       stdin: true
       tty: true
-      args: ["bash", "-l"]
+      args: [bash, -l]
       env:
         - name: USE_TLS
           value: "yes"
@@ -79,6 +80,13 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.hostIP
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+        limits:
+          cpu: 500m
+          memory: 512Mi
       volumeMounts:
         - name: redis-cli-conf
           mountPath: /etc/stunnel/conf.d/redis-cli.conf
